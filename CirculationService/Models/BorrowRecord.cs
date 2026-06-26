@@ -18,8 +18,8 @@ public class BorrowRecord
 
     public DateTime? ReturnDate { get; set; }
 
-    public string Status { get; set; } = "Borrowed";
-    // Borrowed, Returned
+    public string Status { get; set; } = "Requested";
+    // Requested, Borrowed, Returned, Rejected
 
     public decimal FineAmount { get; set; } = 0;
 

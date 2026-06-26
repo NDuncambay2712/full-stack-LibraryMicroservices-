@@ -46,6 +46,10 @@ builder.Services.AddHttpClient<CatalogClient>(client =>
     client.BaseAddress = new Uri(catalogBaseUrl);
 });
 
+// Singleton: giữ cấu hình quy tắc mượn trả tại runtime
+// Admin có thể cập nhật qua PUT /api/borrow-settings mà không cần restart
+builder.Services.AddSingleton<BorrowSettingsService>();
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
@@ -73,6 +77,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = "role",
 
         ClockSkew = TimeSpan.Zero
     };

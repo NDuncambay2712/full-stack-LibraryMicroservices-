@@ -50,8 +50,10 @@ public class InvoicesController : ControllerBase
             return NotFound(new { message = "Không tìm thấy hóa đơn" });
         }
 
-        var role = User.FindFirstValue(ClaimTypes.Role);
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role)
+                   ?? User.FindFirstValue("role");
+        var userId = User.FindFirstValue("userId")
+                     ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (role == "Reader" && invoice.ReaderId.ToString() != userId)
         {
@@ -74,7 +76,8 @@ public class InvoicesController : ControllerBase
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetMyInvoices()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("userId")
+                     ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -129,10 +132,12 @@ public class InvoicesController : ControllerBase
     {
         var invoicesQuery = _context.Invoices.Where(x => x.BorrowRecordId == borrowRecordId);
 
-        var role = User.FindFirstValue(ClaimTypes.Role);
+        var role = User.FindFirstValue(ClaimTypes.Role)
+                   ?? User.FindFirstValue("role");
         if (role == "Reader")
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue("userId")
+                         ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 var readerId = Guid.Parse(userId);

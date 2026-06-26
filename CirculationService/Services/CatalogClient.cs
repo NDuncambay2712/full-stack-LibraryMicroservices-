@@ -1,4 +1,4 @@
-﻿using CirculationService.DTOs.External;
+using CirculationService.DTOs.External;
 using System.Net.Http.Json;
 
 namespace CirculationService.Services;
@@ -62,5 +62,21 @@ public class CatalogClient
         var response = await _httpClient.SendAsync(request);
 
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<BookSummaryResponse>> GetBooksAsync(string? search, bool onlyAvailable, string token)
+    {
+        var url = $"/api/books?search={Uri.EscapeDataString(search ?? "")}&onlyAvailable={onlyAvailable}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return new List<BookSummaryResponse>();
+        }
+
+        return await response.Content.ReadFromJsonAsync<List<BookSummaryResponse>>() ?? new List<BookSummaryResponse>();
     }
 }

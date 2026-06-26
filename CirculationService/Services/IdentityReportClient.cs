@@ -1,4 +1,4 @@
-﻿using CirculationService.DTOs.External;
+using CirculationService.DTOs.External;
 using System.Net.Http.Json;
 
 namespace CirculationService.Services;
@@ -64,5 +64,32 @@ public class IdentityReportClient
         var response = await _httpClient.SendAsync(request);
 
         return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Conflict;
+    }
+
+    public async Task<List<ReaderSummaryResponse>> GetReadersAsync(string? search, string token)
+    {
+        var url = $"/api/readers?search={Uri.EscapeDataString(search ?? "")}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return new List<ReaderSummaryResponse>();
+        }
+
+        return await response.Content.ReadFromJsonAsync<List<ReaderSummaryResponse>>() ?? new List<ReaderSummaryResponse>();
+    }
+
+    public async Task<string> GetReadersRawAsync(string? search, string token)
+    {
+        var url = $"/api/readers?search={Uri.EscapeDataString(search ?? "")}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        return await response.Content.ReadAsStringAsync();
     }
 }
