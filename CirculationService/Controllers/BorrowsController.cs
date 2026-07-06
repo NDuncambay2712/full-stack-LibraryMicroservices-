@@ -12,6 +12,7 @@ namespace CirculationService.Controllers;
 
 [ApiController]
 [Route("api/borrows")]
+[Route("api/circulation/borrows")]
 public class BorrowsController : ControllerBase
 {
     private readonly CirculationDbContext _context;
@@ -717,7 +718,7 @@ public class BorrowsController : ControllerBase
     //   <img :src="qrImageUrl" />   → hiển thị ảnh QR trực tiếp
     // ─────────────────────────────────────────────────────────────────────
     [HttpGet("{id:guid}/payment-qr")]
-    [Authorize(Roles = "Admin,Librarian")]
+    [Authorize(Roles = "Admin,Librarian,Reader")]
     [ProducesResponseType(typeof(FinePaymentQrResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -728,6 +729,19 @@ public class BorrowsController : ControllerBase
         if (borrow == null)
         {
             return NotFound(new { message = "Không tìm thấy phiếu mượn" });
+        }
+
+        // Kiểm tra phân quyền: Nếu là Reader, chỉ được lấy mã QR thanh toán cho chính mình
+        var role = User.FindFirstValue(ClaimTypes.Role)
+                   ?? User.FindFirstValue("role");
+        if (role == "Reader")
+        {
+            var userId = User.FindFirstValue("userId")
+                         ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId) || borrow.ReaderId.ToString() != userId)
+            {
+                return Forbid();
+            }
         }
 
         if (borrow.FineAmount <= 0)

@@ -14,6 +14,7 @@ namespace CirculationService.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/borrow-settings")]
+[Route("api/circulation/borrow-settings")]
 public class BorrowSettingsController : ControllerBase
 {
     private readonly BorrowSettingsService _settings;

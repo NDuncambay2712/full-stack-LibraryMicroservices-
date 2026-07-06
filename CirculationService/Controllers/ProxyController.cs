@@ -17,6 +17,7 @@ namespace CirculationService.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/proxy")]
+[Route("api/circulation/proxy")]
 public class ProxyController : ControllerBase
 {
     private readonly CatalogClient _catalogClient;

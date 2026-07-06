@@ -9,6 +9,7 @@ namespace CirculationService.Controllers;
 
 [ApiController]
 [Route("api/invoices")]
+[Route("api/circulation/invoices")]
 public class InvoicesController : ControllerBase
 {
     private readonly CirculationDbContext _context;
