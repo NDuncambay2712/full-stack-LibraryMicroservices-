@@ -24,8 +24,23 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Support Railway's DATABASE_URL or custom connection string
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+// Support Railway's DATABASE_URL (URI format: postgresql://user:pass@host:port/db)
+// or fallback to appsettings connection string (key=value format)
+static string? ConvertDatabaseUrl(string? url)
+{
+    if (string.IsNullOrEmpty(url)) return null;
+    if (!url.StartsWith("postgresql://") && !url.StartsWith("postgres://")) return url;
+    var uri = new Uri(url);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+    return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+var connectionString = ConvertDatabaseUrl(Environment.GetEnvironmentVariable("DATABASE_URL"))
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<CirculationDbContext>(options =>
