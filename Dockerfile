@@ -20,8 +20,8 @@ WORKDIR /app
 # Copy published output
 COPY --from=build /app/publish .
 
-# Railway sets PORT env variable; ASP.NET Core listens on it
-ENV ASPNETCORE_URLS=http://+:$PORT
-EXPOSE $PORT
+# Railway injects PORT at runtime; use shell form so $PORT expands correctly
+EXPOSE 8080
+ENV ASPNETCORE_HTTP_PORTS=8080
 
 ENTRYPOINT ["dotnet", "CirculationService.dll"]
