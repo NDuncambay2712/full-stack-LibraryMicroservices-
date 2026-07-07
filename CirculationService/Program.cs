@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<CirculationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var identityBaseUrl = builder.Configuration["Services:IdentityReportBaseUrl"];
 var catalogBaseUrl = builder.Configuration["Services:CatalogBaseUrl"];
@@ -119,6 +119,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Auto-migrate database on startup (required for Railway / cloud deployments)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CirculationDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseSwagger();
 

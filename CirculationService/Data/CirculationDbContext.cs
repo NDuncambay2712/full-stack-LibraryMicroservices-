@@ -33,7 +33,7 @@ public class CirculationDbContext : DbContext
                 .HasMaxLength(50);
 
             entity.Property(x => x.FineAmount)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             entity.HasIndex(x => x.ReaderId);
             entity.HasIndex(x => x.BookId);
@@ -45,7 +45,7 @@ public class CirculationDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.Property(x => x.Amount)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             entity.Property(x => x.Type)
                 .IsRequired()
