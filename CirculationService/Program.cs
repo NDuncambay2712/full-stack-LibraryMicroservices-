@@ -8,6 +8,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway injects PORT env variable dynamically
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://+:{port}");
+
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
@@ -20,8 +24,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Support Railway's DATABASE_URL or custom connection string
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<CirculationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 var identityBaseUrl = builder.Configuration["Services:IdentityReportBaseUrl"];
 var catalogBaseUrl = builder.Configuration["Services:CatalogBaseUrl"];
@@ -123,8 +131,16 @@ var app = builder.Build();
 // Auto-migrate database on startup (required for Railway / cloud deployments)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CirculationDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<CirculationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database migration failed on startup");
+    }
 }
 
 app.UseSwagger();
